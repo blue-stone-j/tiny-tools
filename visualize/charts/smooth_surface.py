@@ -1,6 +1,6 @@
 '''
 Load data.csv to get (x,y,value) and draw them on a 3D surface. Linear interpolate is used to make surface smooth. 
-If there are some invalid value, you can use mask.csv to remove them from graphs. This mask should contain 0 and 1, 
+If there are some invalid values, you can use mask.csv to remove them from graphs. This mask should contain 0 and 1, 
 where 1 means valid and 0 means invalid.
 '''
 

@@ -1,5 +1,5 @@
 '''
-Load data.csv to get (x,y,value) and draw them on a plane. If there are some invalid value, you can use mask.csv to 
+Load data.csv to get (x,y,value) and draw them on a plane. If there are some invalid values, you can use mask.csv to 
 remove them from graphs. This mask should contain 0 and 1, where 1 means valid and 0 means invalid.
 '''
 
