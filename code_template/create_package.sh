@@ -1,14 +1,42 @@
+# first argument: folder name
+# second argument: package type
+
+# create a folder with the following structure:
+# folder
+# ├── third_party
+# ├── assets
+# ├── build
+# ├── cmake
+# │   ├── global_definition.cmake
+# │   └── folderConfig.cmake.in
+# ├── component
+# ├── config
+# │   └── config.json
+# ├── core
+# ├── debian
+# │   └── control
+# │   └── rules
+# │   └── changelog
+# │   └── compat
+# ├── include
+# │   └── global_definition.h.in
+# ├── install
+# └── plugin
+# ├── src
+# ├── test
+# ├── cbuild.sh
+# ├── CMakeLists.txt
 
 
 # Check if a folder name is provided
-
 if [ -z "$1" ]; then
   echo "Usage: create_folder <folder_name>"
   exit 1
 fi
+
 name=$1
 # translates all lowercase letters to uppercase
-nameu=$(echo "$1" | tr '[:lower:]' '[:upper:]')
+name_upper=$(echo "$1" | tr '[:lower:]' '[:upper:]')
 
 if [ -z "$2" ]; then
   echo "unspecified package type: should be 'lib' or 'app'"
@@ -24,7 +52,7 @@ echo "Folder '$name' created successfully."
 cd $name
 
 # create subfolders
-mkdir -p 3rdparty
+mkdir -p third_party
 mkdir -p assets
 mkdir -p build
 mkdir -p cmake
@@ -65,7 +93,7 @@ elif [ "$type" == "app" ]; then
 fi
 
 cat <<EOF > "global_definition.cmake"
-set(SOFTWARE_VERSION \${${nameu}_VERSION})
+set(SOFTWARE_VERSION \${${name_upper}_VERSION})
 
 string(TIMESTAMP RELEASE_DATE "%d.%m.%y")
 
@@ -157,12 +185,12 @@ string(TOUPPER "\${PROJECT_NAME}" PROJECT_NAME_U)
 
 set(CMAKE_CXX_FLAGS "-O3 -Wall -g \${CMAKE_CXX_FLAGS} -pthread")
 
-if(NOT DEFINED ${nameu}_VERSION)
-  set(${nameu}_VERSION_MAJOR 1)
-  set(${nameu}_VERSION_MINOR 0)
-  set(${nameu}_VERSION_PATCH 0)
-  set(${nameu}_VERSION \${${nameu}_VERSION_MAJOR}.\${${nameu}_VERSION_MINOR}.\${${nameu}_VERSION_PATCH})
-  set(CMAKE_INSTALL_PREFIX \${CMAKE_CURRENT_SOURCE_DIR}/install/\${PROJECT_NAME}-\${${nameu}_VERSION})
+if(NOT DEFINED ${name_upper}_VERSION)
+  set(${name_upper}_VERSION_MAJOR 1)
+  set(${name_upper}_VERSION_MINOR 0)
+  set(${name_upper}_VERSION_PATCH 0)
+  set(${name_upper}_VERSION \${${name_upper}_VERSION_MAJOR}.\${${name_upper}_VERSION_MINOR}.\${${name_upper}_VERSION_PATCH})
+  set(CMAKE_INSTALL_PREFIX \${CMAKE_CURRENT_SOURCE_DIR}/install/\${PROJECT_NAME}-\${${name_upper}_VERSION})
 endif()
 
 include(FindPkgConfig)
@@ -179,7 +207,7 @@ include_directories(
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
   "\${PROJECT_NAME}ConfigVersion.cmake"
-  VERSION \${${nameu}_VERSION}
+  VERSION \${${name_upper}_VERSION}
   COMPATIBILITY SameMajorVersion)
 
 install(FILES \${CMAKE_CURRENT_BINARY_DIR}/\${PROJECT_NAME}ConfigVersion.cmake
@@ -199,8 +227,8 @@ install(FILES \${CMAKE_CURRENT_SOURCE_DIR}/cmake/\${PROJECT_NAME}Config.cmake
 EOF
 fi
 
-# create make.sh
-cat <<EOF > "make.sh"
+# create cbuild.sh
+cat <<EOF > "cbuild.sh"
 
 # colorful output
 RED='\033[0;31m'
@@ -214,31 +242,31 @@ rm -rf install &&
 
 echo -e "\${BLUE}Start working.\${NC}"
 
-# set varible
-echo -e "\${BLUE}Start setting varibles.\${NC}"
+# set variable
+echo -e "\${BLUE}Start setting variables.\${NC}"
 PROJECT_NAME=$name
 PROJECT_NAME_U=\$(echo "\$PROJECT_NAME" | tr '[:lower:]' '[:upper:]')
 PROJECT_NAME_L=\$(echo "\$PROJECT_NAME" | tr '[:upper:]' '[:lower:]')
 
-${nameu}_VERSION_MAJOR=1
-${nameu}_VERSION_MINOR=0
-${nameu}_VERSION_PATCH=0
-${nameu}_VERSION=\${${nameu}_VERSION_MAJOR}.\${${nameu}_VERSION_MINOR}.\${${nameu}_VERSION_PATCH}
+${name_upper}_VERSION_MAJOR=1
+${name_upper}_VERSION_MINOR=0
+${name_upper}_VERSION_PATCH=0
+${name_upper}_VERSION=\${${name_upper}_VERSION_MAJOR}.\${${name_upper}_VERSION_MINOR}.\${${name_upper}_VERSION_PATCH}
 
 EOF
 
 if [ "$type" == "lib" ]; then
-  cat <<EOF >> "make.sh"
+  cat <<EOF >> "cbuild.sh"
 BUILD_TEST=FALSE
 
 CMAKE_INSTALL_PREFIX=\$(realpath \$(dirname "\${BASH_SOURCE[0]}"))/install
-echo -e "\${GREEN}Set varibles completed.\${NC}"
+echo -e "\${GREEN}Set variables completed.\${NC}"
 
 # build
 echo -e "\${BLUE}Start building.\${NC}"
 mkdir -p build &&
 cd build &&
-cmake -D${nameu}_VERSION=\${${nameu}_VERSION} \\
+cmake -D${name_upper}_VERSION=\${${name_upper}_VERSION} \\
       -DCMAKE_INSTALL_PREFIX=\$CMAKE_INSTALL_PREFIX \\
       -DBUILD_TEST=\$BUILD_TEST \\
       ..
@@ -261,17 +289,17 @@ echo -e "\${GREEN}All tasks have been done.\${NC}"
 
 EOF
 elif [ "$type" == "app" ]; then
-  cat <<EOF >> "make.sh"
+  cat <<EOF >> "cbuild.sh"
 NEED_PACK=false
 
-CMAKE_INSTALL_PREFIX=\$(pwd)/install/\$PROJECT_NAME-${nameu}_VERSION
-echo -e "\${GREEN}Set varibles completed.\${NC}"
+CMAKE_INSTALL_PREFIX=\$(pwd)/install/\$PROJECT_NAME-${name_upper}_VERSION
+echo -e "\${GREEN}Set variables completed.\${NC}"
 
 # build
 echo -e "\${BLUE}Start building.\${NC}"
 mkdir -p build &&
 cd build &&
-cmake -D{PROJECT_NAME_U}_VERSION=${nameu}_VERSION \\
+cmake -D{PROJECT_NAME_U}_VERSION=${name_upper}_VERSION \\
       -DCMAKE_INSTALL_PREFIX=\$CMAKE_INSTALL_PREFIX \\
       -DNEED_PACK=\$NEED_PACK \\
       .. &&
@@ -295,8 +323,8 @@ echo -e "\${BLUE}Start packing.\${NC}"
 
 mkdir -p ../install &&
 cd ../install &&
-tar -zcvf \$PROJECT_NAME-${nameu}_VERSION.tar.gz \$PROJECT_NAME-${nameu}_VERSION &&
-cd \$PROJECT_NAME-${nameu}_VERSION &&
+tar -zcvf \$PROJECT_NAME-${name_upper}_VERSION.tar.gz \$PROJECT_NAME-${name_upper}_VERSION &&
+cd \$PROJECT_NAME-${name_upper}_VERSION &&
 
 dpkg-buildpackage -us -uc &&
 
@@ -312,4 +340,4 @@ echo -e "\${GREEN}All tasks have been done: \${NC}"
 EOF
 fi
 
-chmod +x make.sh
+chmod +x cbuild.sh
