@@ -1,3 +1,8 @@
+"""
+This script reads multiple CSV files from a specified folder, sorts them based on the second row of each file,
+and concatenates them into a single CSV file. The second row is used as the sort key, and the resulting file is saved without headers.
+"""
+
 import os
 import pandas as pd
 
