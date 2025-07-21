@@ -25,6 +25,11 @@ for k,v in config.items():
 config['utm_zone']=50 # add or edit a key-value pair
 print('utm_zone: ',config['utm_zone']) # print the changed value
 
+# data["pos"] is a list of dictionaries
+for item in config.get("pos", []):
+    if item.get("key") == "x":
+        value = item.get("value")
+
 # write to new file
 with open('test.yaml','w') as f:
   yaml.indent(mapping=2, sequence=4, offset=2)
